@@ -14,6 +14,6 @@ out: cleaned_comments.txt
 in: cleaned_comments.txt
 out: labeled_comments.txt
 
-5-Oversampling_comments
+5-Training_model
 in: labeled_comments.txt
 out: risultati
