@@ -7,15 +7,14 @@ from sklearn.metrics import classification_report, accuracy_score, hamming_loss,
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
 
-# === CONFIGURAZIONE ===
 input_path = "D:\\natural lenguages\\progetto\\labeled_comments.txt"
 model_path = "D:\\natural lenguages\\progetto\\bert_model.pth"
 pretrained_model = "bert-base-uncased"
 batch_size = 8
 all_labels = ["Luck", "Bookkeeping", "Downtime", "Interaction", "Bash_the_leader", "Complicated", "Complex"]
 
-# === STEP 1: CARICAMENTO DEI DATI ===
-print("Caricamento dei dati di test...")
+
+print("Caricamento dei dati")
 comments, labels = [], []
 
 with open(input_path, 'r', encoding='utf-8') as file:
@@ -37,7 +36,6 @@ with open(input_path, 'r', encoding='utf-8') as file:
 
 print(f"Numero di commenti: {len(comments)}")
 
-# Convertiamo le etichette in formato binario multi-label
 mlb = MultiLabelBinarizer(classes=all_labels)
 y = mlb.fit_transform(labels)
 
@@ -46,12 +44,11 @@ X_train, X_test, y_train, y_test = train_test_split(comments, y, test_size=0.2, 
 num_labeled_comments = np.sum(np.sum(y_test, axis=1) > 0)
 print(f"Numero di commenti con almeno un'etichetta in y_test: {num_labeled_comments}")
 
-print("Supporto calcolato manualmente:", np.sum(y_test))
+print("Supporto:", np.sum(y_test))
 
 num_multi_label_comments = np.sum(np.sum(y_test, axis=1) > 1)
 print(f"Numero di commenti con più di un'etichetta: {num_multi_label_comments}")
 
-# === STEP 2: TOKENIZZAZIONE CON BERT ===
 print("Tokenizzazione con BERT...")
 tokenizer = BertTokenizer.from_pretrained(pretrained_model)
 
@@ -84,7 +81,6 @@ class CommentDataset(Dataset):
 test_dataset = CommentDataset(X_test, y_test, tokenizer)
 test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-# === STEP 3: CARICAMENTO DEL MODELLO ===
 class MultiLabelBERT(torch.nn.Module):
     def __init__(self, pretrained_model, num_labels):
         super(MultiLabelBERT, self).__init__()
@@ -98,14 +94,12 @@ class MultiLabelBERT(torch.nn.Module):
         return self.sigmoid(logits)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"🔹 Test su: {device}")
+print(f"Test su: {device}")
 
 model = MultiLabelBERT(pretrained_model, num_labels=len(all_labels)).to(device)
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
-# === STEP 4: ESECUZIONE DEL TEST ===
-print("Eseguendo il test sul dataset...")
 y_pred_list = []
 
 with torch.no_grad():
@@ -117,12 +111,11 @@ with torch.no_grad():
 
 y_pred = np.vstack(y_pred_list)
 
-# === STEP 5: ANALISI DELLA SOGLIA ===
 thresholds = np.linspace(0.1, 0.9, 9)
 precision_scores, recall_scores, f1_scores = [], [], []
-best_threshold, best_f1 = 0.5, 0  # Default
+best_threshold, best_f1 = 0.5, 0 
 
-print("🔍 Ricerca della soglia ottimale...")
+print("Ricerca della soglia")
 for t in thresholds:
     y_pred_bin = (y_pred > t).astype(int)
     precision = precision_score(y_test, y_pred_bin, average="micro")
@@ -136,19 +129,17 @@ for t in thresholds:
     if f1 > best_f1:
         best_f1, best_threshold = f1, t
 
-print(f"✅ Soglia ottimale: {best_threshold:.2f} con F1-score {best_f1:.4f}")
+print(f"Soglia ottimale: {best_threshold:.2f} con F1-score {best_f1:.4f}")
 
-# === STEP 6: VALUTAZIONE FINALE ===
 y_pred_bin = (y_pred > best_threshold).astype(int)
 
-print("=== REPORT DI CLASSIFICAZIONE ===")
+print("REPORT DI CLASSIFICAZIONE")
 report = classification_report(y_test, y_pred_bin, target_names=mlb.classes_)
 print(report)
 
 print("Hamming Loss:", hamming_loss(y_test, y_pred_bin))
 print("Accuracy Score:", accuracy_score(y_test, y_pred_bin))
 
-# === STEP 7: CREAZIONE DEL GRAFICO PRECISION-RECALL ===
 plt.figure(figsize=(8, 6))
 plt.plot(thresholds, precision_scores, marker='o', label="Precision", linestyle='-')
 plt.plot(thresholds, recall_scores, marker='s', label="Recall", linestyle='-')
@@ -161,4 +152,4 @@ plt.grid()
 plt.savefig("threshold_analysis.png")
 plt.show()
 
-print("📊 Grafico salvato come 'threshold_analysis.png'")
+print("Grafico salvato")

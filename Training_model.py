@@ -8,12 +8,9 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, optim
 
-print("CUDA disponibile:", torch.cuda.is_available())
-print("Versione CUDA:", torch.version.cuda)
+print("CUDA:", torch.cuda.is_available())
 print("Numero di GPU:", torch.cuda.device_count())
-print("Nome GPU:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "Nessuna GPU trovata")
 
-# === CONFIGURAZIONE ===
 input_path = "D:\\natural lenguages\\progetto\\labeled_comments.txt"
 output_path = "D:\\natural lenguages\\progetto\\bert_results.txt"
 pretrained_model = "bert-base-uncased"
@@ -21,8 +18,8 @@ batch_size = 8
 epochs = 5
 learning_rate = 2e-5
 
-# === STEP 1: CARICAMENTO DEI DATI ===
-print("Caricamento dei dati...")
+# Cariicamento dati
+print("Caricamento dei dati")
 comments = []
 labels = []
 all_labels = ["Luck", "Bookkeeping", "Downtime", "Interaction", "Bash_the_leader", "Complicated", "Complex"]
@@ -46,8 +43,8 @@ with open(input_path, 'r', encoding='utf-8') as file:
 
 print(f"Numero di commenti: {len(comments)}")
 
-# === STEP 2: TOKENIZZAZIONE CON BERT ===
-print("Tokenizzazione con BERT...")
+# Tokenizzazione con BERT
+print("Tokenizzazione con BERT")
 tokenizer = BertTokenizer.from_pretrained(pretrained_model)
 
 mlb = MultiLabelBinarizer(classes=all_labels)
@@ -55,7 +52,7 @@ y = mlb.fit_transform(labels)
 
 X_train, X_test, y_train, y_test = train_test_split(comments, y, test_size=0.2, random_state=42)
 
-# === CREAZIONE DATASET COMPATIBILE CON PyTorch ===
+# Creo dataset con pythorch
 class CommentDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length=512):
         self.texts = texts
@@ -88,7 +85,7 @@ test_dataset = CommentDataset(X_test, y_test, tokenizer)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-# === COSTRUZIONE DEL MODELLO ===
+# Modello 
 class MultiLabelBERT(nn.Module):
     def __init__(self, pretrained_model, num_labels):
         super(MultiLabelBERT, self).__init__()
@@ -103,28 +100,26 @@ class MultiLabelBERT(nn.Module):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = MultiLabelBERT(pretrained_model, num_labels=len(all_labels)).to(device)
-print(f"🔹 Training su: {device}")
 model.to(device)
 
-# === DEFINIZIONE DI PERDITA E OTTIMIZZATORE ===
 criterion = nn.BCELoss()
 optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
 
-# === TRAINING DEL MODELLO ===
-print("Inizio addestramento...")
+# Addestramento del modello
+print("Inizio addestramento")
 for epoch in range(epochs):
     model.train()
     total_loss = 0
-    print(f"🔹 Epoch {epoch + 1}/{epochs} in corso...")
+    print(f"Epoch {epoch + 1}/{epochs}")
 
     for batch_idx, batch in enumerate(train_loader):
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         labels = batch["labels"].to(device)
 
-        # Debug: Stampa le dimensioni dei tensori
+        # Debug sui tensori
         if batch_idx == 0:
-            print(f"📌 Batch {batch_idx}: input_ids {input_ids.shape}, labels {labels.shape}")
+            print(f"Batch {batch_idx}: input_ids {input_ids.shape}, labels {labels.shape}")
 
         optimizer.zero_grad()
         outputs = model(input_ids, attention_mask)
@@ -133,14 +128,12 @@ for epoch in range(epochs):
         optimizer.step()
         total_loss += loss.item()
 
-        # Debug: Stampa ogni 100 batch
+        # Debug su ogni 100 batch
         if batch_idx % 100 == 0:
-            print(f"✅ Epoch {epoch + 1}, Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
+            print(f"Epoch {epoch + 1}, Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
 
-    print(f"🎯 Epoch {epoch + 1} completata - Loss media: {total_loss / len(train_loader):.4f}")
-
-# === VALUTAZIONE DEL MODELLO ===
-print("Valutazione del modello...")
+# Valutazione modello
+print("Valutazione del modello")
 model.eval()
 y_pred_list = []
 
@@ -154,28 +147,24 @@ with torch.no_grad():
         y_pred_list.append(outputs.cpu().numpy())
 
 y_pred = np.vstack(y_pred_list)
-y_pred_bin = (y_pred > 0.5).astype(int)  # Ottimizzabile con soglia personalizzata
+y_pred_bin = (y_pred > 0.5).astype(int)
 
-for i in range(10):  # Controlliamo i primi 10 esempi
+for i in range(10):
     print(f"y_test[{i}]: {y_test[i]}")
     print(f"y_pred[{i}]: {y_pred[i]}")
 
-# Contiamo il numero medio di etichette per commento
 print(f"Numero medio di etichette per commento in y_test: {np.mean(np.sum(y_test, axis=1))}")
 print(f"Numero medio di etichette per commento in y_pred: {np.mean(np.sum(y_pred, axis=1))}")
 
-# === METRICHE DI VALUTAZIONE ===
+# Metriche
 report = classification_report(y_test, y_pred_bin, target_names=mlb.classes_)
 print(report)
 
 print("Hamming Loss:", hamming_loss(y_test, y_pred_bin))
 print("Accuracy Score:", accuracy_score(y_test, y_pred_bin))
 
-
-# === SALVATAGGIO DEI RISULTATI ===
-print("Salvataggio dei risultati...")
 with open(output_path, "w", encoding="utf-8") as output_file:
-    output_file.write("=== REPORT DI CLASSIFICAZIONE ===\n")
+    output_file.write("REPORT DI CLASSIFICAZIONE\n")
     output_file.write(report)
 
 torch.save(model.state_dict(), "D:\\natural lenguages\\progetto\\bert_model.pth")

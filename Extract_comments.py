@@ -28,22 +28,20 @@ def get_game_comments(game_id, max_pages=5):
         #time.sleep(1)  
     return comments
 
-#Crea un file di output per scrivere i dati
+
 output_path = 'D:\\natural lenguages\\Progetto\\output_comments.txt'
 with open(output_path, 'w', encoding='utf-8') as f:
-    # Itera su ciascun gioco e recupera i commenti
     for game_id, name in games:
         comments = get_game_comments(game_id)
         print(f"commenti del gioco {game_id, name}")
         for comment in comments:
-            # Scrivi ogni commento con i dettagli nel file
             f.write(f"Game ID: {game_id}\n")
             f.write(f"Game Name: {name}\n")
             f.write(f"Comment ID: {comment['comment_id']}\n")
             f.write(f"Comment Text: {comment['text']}\n")
             f.write(f"Rating: {comment['rating']}\n")
-            f.write("-" * 50 + "\n")  # Separatore tra i commenti
-        f.write("=" * 50 + "\n")  # Separatore tra i giochi
+            f.write("-" * 50 + "\n")  
+        f.write("=" * 50 + "\n")  
 
 '''
 output_path = 'D:\\natural lenguages\\output_comments.txt'

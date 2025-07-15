@@ -1,15 +1,15 @@
-=== REPORT DI CLASSIFICAZIONE ===
+REPORT DI CLASSIFICAZIONE
                  precision    recall  f1-score   support
 
-           Luck       1.00      1.00      1.00      3102
-    Bookkeeping       0.91      0.91      0.91        35
-       Downtime       0.99      0.99      0.99       182
-    Interaction       0.99      1.00      1.00       364
-Bash_the_leader       0.91      0.83      0.87        24
-    Complicated       1.00      1.00      1.00       186
-        Complex       1.00      1.00      1.00       361
-
-      micro avg       1.00      1.00      1.00      4254
-      macro avg       0.97      0.96      0.97      4254
-   weighted avg       1.00      1.00      1.00      4254
-    samples avg       0.96      0.96      0.96      4254
+            Luck      1.00      1.00      1.00      3102
+     Bookkeeping      0.97      0.83      0.89      35
+        Downtime      0.99      0.99      0.99      182
+     Interaction      0.99      1.00      0.99      364
+ Bash_the_Leader      0.86      0.79      0.83      24
+     Complicated      1.00      0.99      1.00      186
+         Complex      0.99      1.00      0.99      361
+     
+        micro avg     1.00      1.00      1.00      4254
+        macro avg     0.97      0.94      0.96      4254
+     weighted avg     1.00      1.00      1.00      4254
+      samples avg     0.96      0.96      0.96      4254

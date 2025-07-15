@@ -1,10 +1,8 @@
 import re
 
-# Percorso dei file di input e output
 input_path = 'D:\\natural lenguages\\progetto\\cleaned_comments.txt'
 output_path = 'D:\\natural lenguages\\progetto\\labeled_comments.txt'
 
-# Definisci le parole chiave per ciascuna etichetta
 keywords = {
     "luck": [
         r"\b(luck|random|chance|alea|rolls?|dice|fortune|unpredictable)\b",
@@ -42,17 +40,21 @@ keywords = {
         r"\b(cross\s*play|opponent\s*interference|actions\s*impact\s*others)\b"
     ],
     "bash_the_leader": [
-        r"\b(bookkeeping|record\s*(keeping|tracking)|data\s*tracking|data\s*recording|manual\s*entry)\b",
-        r"\b(update\s*(parameters|values|stats)|manual\s*(calculation|tracking))\b",
-        r"\b(continual\s*updating|frequent\s*updates|constant\s*adjustments)\b",
-        r"\b(referencing\s*rules|checking\s*rulebook|rule\s*lookup|rule\s*reference)\b",
-        r"\b(spending\s*too\s*much\s*time\s*tracking|having\s*to\s*write\s*down\s*data)\b",
-        r"\b(game\s*flow\s*interrupted\s*by\s*record\s*keeping)\b",
-        r"\b(feels\s*like\s*a\s*chore|unnecessary\s*steps|too\s*many\s*adjustments)\b",
-        r"\b(not\s*engaging|adds\s*no\s*value|not\s*fun|tedious\s*task)\b",
-        r"\b(video\s*game\s*comparison|AI\s*does\s*this|should\s*be\s*automatic|automatically\s*calculated)\b",
-        r"\b(prone\s*to\s*error|easy\s*to\s*make\s*mistakes|complicated\s*to\s*track)\b",
-        r"\b(difficult\s*bookkeeping|hard\s*to\s*follow|leads\s*to\s*errors)\b"
+        r"\b(bash\s*(the\s*)?leader|target\s*leader|go\s*after\s*leader)\b",
+        r"\b(prevent\s*leader\s*win|(block|stop|hinder)\s*leader)\b",
+        r"\b(sacrifice\s*(myself|own advantage) (to|for) (stop|hinder|block))\b",
+        r"\b(prevent victory|attack leader|hit\s*leader|stop\s*first\s*place)\b",
+        r"\b(bash\s*(the\s*)?leader|attack\s*the\s*leader|target\s*leader)\b",
+        r"\b(stop\s*leader|block\s*leader|hinder\s*leader|focus\s*on\s*leader)\b",
+        r"\b(prevent\s*leader\s*win|prevent\s*the\s*leader\s*from\s*winning)\b",
+        r"\b(sacrifice\s*(myself|advantage|turn)\s*to\s*(block|stop|hinder)\s*leader)\b",
+        r"\b(no\s*gain\s*for\s*self|others\s*benefit\s*from\s*my\s*actions)\b",
+        r"\b(taking\s*actions\s*against\s*the\s*leader\s*for\s*no\s*personal\s*gain)\b",
+        r"\b(forced\s*to\s*attack\s*leader|must\s*stop\s*leader|mandatory\s*to\s*target\s*leader)\b",
+        r"\b(spiacevole\s*situazione|costretto\s*a\s*fermare\s*il\s*leader)\b",
+        r"\b(let\s*others\s*win|help\s*others\s*by\s*hitting\s*leader)\b",
+        r"\b(all\s*against\s*the\s*leader|ganging\s*up\s*on\s*leader|leader\s*under\s*attack)\b",
+        r"\b(leader\s*penalty|leader\s*punishment|hit\s*the\s*leader\s*mechanic)\b"
     ],
     "complicated": [
         r"\b(complicated|complex\s*rules|difficult\s*to\s*learn|hard\s*to\s*grasp)\b",
@@ -80,7 +82,7 @@ def label_comment(text, keywords):
             labels[label] = 0
     return labels
 
-# Elabora il file riga per riga e applica le etichette
+
 with open(input_path, 'r', encoding='utf-8') as infile, open(output_path, 'w', encoding='utf-8') as outfile:
     current_comment = {}
     
@@ -100,18 +102,15 @@ with open(input_path, 'r', encoding='utf-8') as infile, open(output_path, 'w', e
                     current_comment["rating"] = value
             except ValueError:
                 print(f"Errore nel processare la riga: {line.strip()}")
-        elif line.strip() == "-" * 50:  # Fine di un commento
+        elif line.strip() == "-" * 50: 
             if "cleaned_text" in current_comment:
-                # Ignora commenti vuoti o troppo brevi
                 if not current_comment["cleaned_text"] or len(current_comment["cleaned_text"].split()) < 3:
                     print(f"Commento troppo breve o vuoto, ignorato: {current_comment['cleaned_text']}")
                     current_comment = {}
                     continue
                 
-                # Etichetta il commento
                 labels = label_comment(current_comment["cleaned_text"], keywords)
                 
-                # Scrivi i dati e le etichette nel file di output
                 outfile.write(f"Game ID: {current_comment['game_id']}\n")
                 outfile.write(f"Game Name: {current_comment['game_name']}\n")
                 outfile.write(f"Comment ID: {current_comment['comment_id']}\n")
